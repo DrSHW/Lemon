@@ -18,7 +18,7 @@ CMM 是一个简化的可自举的C语言编译器（建设中），借鉴了著
 
    将其转换为AST，形态如下：
 
-   <img src="C:\Users\17100\AppData\Roaming\Typora\typora-user-images\image-20220828181532096.png" alt="image-20220828181532096" style="zoom:50%;" />
+   <img src="./images/pic1.png" alt="image-20220828181532096" style="zoom:50%;" />
    
    我们也可以写出它的逆波兰表达式：`/(+(*34)15)3`，这个也很常用。
 
@@ -156,17 +156,17 @@ else if (op == RET)     {sp = bp; bp = (int*)*sp++; pc = (int*)*sp++;}
 直接搬运C4项目中的`Native-call`，贴代码：
 
 ```c
-        // native call，直接搬运 C4 项目中的配置
-        else if (op == OPEN)    {ax = open((char*)sp[1], sp[0]);}
-        else if (op == CLOS)    {ax = close(*sp);}
-        else if (op == READ)    {ax = read(sp[2], (char*)sp[1], *sp);}
-        else if (op == PRTF)    {tmp = sp + pc[1] - 1; ax = printf((char*)tmp[0], tmp[-1], tmp[-2], tmp[-3], tmp[-4], tmp[-5]);}
-        else if (op == MALC)    {ax = (int)malloc(*sp);}
-        else if (op == FREE)    {free((void*)*sp);}
-        else if (op == MSET)    {ax = (int)memset((char*)sp[2], sp[1], *sp);}
-        else if (op == MCMP)    {ax = memcmp((char*)sp[2], (char*)sp[1], *sp);}
-        else if (op == EXIT)    {printf("exit(%lld)\n", *sp); return *sp;}
-        else {printf("ERROR: Unkown Instruction: %lld, cycle: %lld\n", op, cycle); return -1;}
+// native call，直接搬运 C4 项目中的配置
+else if (op == OPEN)    {ax = open((char*)sp[1], sp[0]);}
+else if (op == CLOS)    {ax = close(*sp);}
+else if (op == READ)    {ax = read(sp[2], (char*)sp[1], *sp);}
+else if (op == PRTF)    {tmp = sp + pc[1] - 1; ax = printf((char*)tmp[0], tmp[-1], tmp[-2], tmp[-3], tmp[-4], tmp[-5]);}
+else if (op == MALC)    {ax = (int)malloc(*sp);}
+else if (op == FREE)    {free((void*)*sp);}
+else if (op == MSET)    {ax = (int)memset((char*)sp[2], sp[1], *sp);}
+else if (op == MCMP)    {ax = memcmp((char*)sp[2], (char*)sp[1], *sp);}
+else if (op == EXIT)    {printf("exit(%lld)\n", *sp); return *sp;}
+else {printf("ERROR: Unkown Instruction: %lld, cycle: %lld\n", op, cycle); return -1;}
 ```
 
 
