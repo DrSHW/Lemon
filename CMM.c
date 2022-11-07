@@ -21,7 +21,7 @@ int * pc,           // pc register
 int ax,             // common register
     cycle;
 
-// instruction set: copy from c4, change JSR/ENT/ADJ/LEV/BZ/BNZ to CALL/NVAR/DARG/RET/JZ/JNZ.
+// 指令集声明
 enum {IMM, LEA, JMP, JZ, JNZ, CALL, NVAR, DARG, RET, LI, LC, SI, SC, PUSH,
     OR, XOR, AND, EQ, NE, LT, GT, LE, GE, SHL, SHR, ADD, SUB, MUL, DIV, MOD,
     OPEN, READ, CLOS, PRTF, MALC, FREE, MSET, MCMP, EXIT};
@@ -94,3 +94,8 @@ int run_vm(int argc, char** argv) {
     }
     return 0;
 }
+
+// 词法分析过程
+// src code & dump
+char* src,
+    * src_dump;
