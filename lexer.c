@@ -572,7 +572,6 @@ void assert(int wanted_tk, int *codePos, char *sourceCode, char *token, int *tok
     if (*tokenType != wanted_tk)
     {
         // printf("%d  %s", *tokenType, token);
-        printf("%d", IDENFR);
         printf("line %lld, col %lld: expect token: %d, get: %s\n", curLine, curCol, wanted_tk, token);
         exit(-1);
     }
@@ -593,7 +592,6 @@ void check_new_id(char *token)
         hash += (token[i] * P) % 1610612741;
         P = P * 131 % 1610612741;
     }
-    printf("%d\n", hash);
     // ≈–∂œ «∑Ò÷ÿ∏¥
     for (int i = 0; i < global_id_count; i++)
     {
