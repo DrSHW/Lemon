@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 // 定义c语言所有保留字数组，字母从a开始
 static char *key[] = {"auto", "break", "case", "char", "const", "continue", "default", "do", "double",
@@ -200,7 +201,7 @@ int isOperator(char *c)
 // 预编译，过滤所有注释、空格、制表符
 int filterStopWord(char *r, int totLen)
 {
-    char rawCode[10000] = "";
+    char rawCode[100000] = "";
     int pos = 0;  // 记录当前字符位置
     int line = 0; // 行号
     int col = 0;  // 列号
@@ -211,16 +212,12 @@ int filterStopWord(char *r, int totLen)
             while (r[i] != '\n')
                 i++;
             line++;
-            col = 1;
-            rawCode[pos++] = r[i];
         }
         if (r[i] == '#')
         {
             while (r[i] != '\n')
                 i++;
             line++;
-            col = 1;
-            rawCode[pos++] = r[i];
         }
         else if (r[i] == '\n')
         {
@@ -261,7 +258,7 @@ int filterStopWord(char *r, int totLen)
                     printf("%s", exception);
                     errorCount++;
                     rawCode[i++] = '\0';
-                    return 0;
+                    exit(0);
                 }
             }
             i++;
@@ -298,7 +295,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
     {
         line++;
         col = 1;
-        *tokenType = 0;
+        *tokenType = -2;
         *codePos += 1;
     }
     else if (isLetter(start))
@@ -351,7 +348,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
     {
         *codePos += 1;
         col++;
-        *tokenType = 0;
+        *tokenType = -1;
     }
     else if (start == '\'')
     {
@@ -383,7 +380,6 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
             sprintf(temp, "%d", tmpCol);
             strcat(exception, temp);
             strcat(exception, ": char should be enclosed by single quotes");
-            printf("%d", token[1]);
             strcpy(errorList[errorCount], exception);
             // printf("%s\n", exception);
             return;
@@ -483,7 +479,9 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
         sprintf(temp, "%d", tmpCol);
         strcat(exception, temp);
         strcat(exception, ": illegal word: ");
-        strcat(exception, start);
+        char temp2[2];
+        temp2[0] = start, temp2[1] = '\0';
+        strcat(exception, temp2);
         strcpy(errorList[errorCount], exception);
         printf("%s\n", exception);
         return;
@@ -493,10 +491,28 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
     curCol = col;
 }
 
+void parser(char* sourceCode)
+{
+    int codePos = 0;
+    int tokenType = 1;
+    char token[100];
+    int line = 1;
+    int col = 1;
+    while ( tokenType != 0)
+    {
+        tokenize(&codePos, sourceCode, token, &tokenType);
+        if (tokenType == _ENUM) {
+            assert(_ENUM);
+            
+        }
+        
+    }
+}
+
 int main()
 {
     // 读取源代码
-    FILE *fp = fopen("self.c", "r");
+    FILE *fp = fopen("lexer.c", "r");
     if (fp == NULL)
     {
         printf("ERROR: file not found");
@@ -508,31 +524,35 @@ int main()
     {
         sourceCode[codeLen++] = ch;
     }
+    // printf("%d", codeLen);
     int flag = filterStopWord(sourceCode, strlen(sourceCode));
     if (!flag)
     {
+        printf("预编译失败！");
         return 0;
     }
-    char token[100];
-    int tokenType;
-    int codePos = 0;
-    while (codePos < strlen(sourceCode))
-    {
-        tokenize(&codePos, sourceCode, token, &tokenType);
-        if (tokenType)
-        {
-            IDCount++;
-            if (tokenType <= 29)
-                printf("Reserved Word: %s\n", token);
-            else if (tokenType <= 74)
-                printf("Operator: %s\n", token);
-            else if (tokenType <= 78)
-                printf("Literal: %s\n", token);
-            else if (tokenType == 79)
-                printf("Identifier: %s\n", token);
-            else
-                break;
-        }
-    }
+    // printf("%s", sourceCode);
+    parser(sourceCode);
+    // char token[100];
+    // int tokenType;
+    // int codePos = 0;
+    // while (codePos < strlen(sourceCode))
+    // {
+    //     tokenize(&codePos, sourceCode, token, &tokenType);
+    //     if (tokenType)
+    //     {
+    //         IDCount++;
+    //         if (tokenType <= 29)
+    //             printf("Reserved Word: %s\n", token);
+    //         else if (tokenType <= 74)
+    //             printf("Operator: %s\n", token);
+    //         else if (tokenType <= 78)
+    //             printf("Literal: %s\n", token);
+    //         else if (tokenType == 79)
+    //             printf("Identifier: %s\n", token);
+    //         else
+    //             break;
+    //     }
+    // }
     return 0;
 }
