@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define unsigned long long ull
+
 // 定义c语言所有保留字数组，字母从a开始
 static char *key[] = {"auto", "break", "case", "char", "const", "continue", "default", "do", "double",
                       "else", "enum", "extern", "float", "for", "goto", "if", "int", "long", "register",
@@ -10,22 +12,93 @@ static char *key[] = {"auto", "break", "case", "char", "const", "continue", "def
 
 // 定义c语言运算符
 static char *op[] = {"+", "-", "*", "/", "%", "++", "--", "=", "+=", "-=", "*=", "/=", "%=", "==", "!=",
-                     ">", "<", ">=", "<=", "&&", "||", "!", "&", "|", "^", "~", "<<", ">>", "?", ":",
+                     ">", "<", ">=", "<=", "&", "|", "!", "&&", "||", "^", "~", "<<", ">>", "?", ":",
                      ",", ";", "(", ")", "[", "]", "{", "}", "\"", "\'"}; // length = 42
 
+// 定义c语言其他字符
+static char *other[] = {"identifier", "number", "string", "character", "comment", "other"}; // length = 6
 
-enum {
+enum
+{
     // 保留字
-    _AUTO = 1, _BREAK, _CASE, _CHAR, _CONST, _CONTINUE, _DEFAULT, _DO, _DOUBLE, _ELSE, _ENUM, _EXTERN,
-    _FLOAT, _FOR, _GOTO, _IF, _INT, _LONG, _REGISTER, _RETURN, _SHORT, _SIGNED, _SIZEOF, _STATIC,
-    _STRUCT, _SWITCH, _TYPEDEF, _UNION, _UNSIGNED, _VOID, _VOLATILE, _WHILE,
+    _AUTO = 1,
+    _BREAK,
+    _CASE,
+    _CHAR,
+    _CONST,
+    _CONTINUE,
+    _DEFAULT,
+    _DO,
+    _DOUBLE,
+    _ELSE,
+    _ENUM,
+    _EXTERN,
+    _FLOAT,
+    _FOR,
+    _GOTO,
+    _IF,
+    _INT,
+    _LONG,
+    _REGISTER,
+    _RETURN,
+    _SHORT,
+    _SIGNED,
+    _SIZEOF,
+    _STATIC,
+    _STRUCT,
+    _SWITCH,
+    _TYPEDEF,
+    _UNION,
+    _UNSIGNED,
+    _VOID,
+    _VOLATILE,
+    _WHILE,
     // 运算符
-    PLUS, MINUS, STAR, DIV, MOD, PLUSPLUS, MINUSMINUS, ASSIGN, PLUSEQUAL, MINUSEQUAL, STAREQUAL,
-    DIVEQUAL, MODEQUAL, EQUAL, NOTEQUAL, GREAT, LESS, GREATEQUAL, LESSEQUAL, AND, OR, NOT, ANDAND,
-    OROR, BITAND, BITOR, BITXOR, BITNOT, LEFTMOVE, RIGHTMOVE, QUESTION, COLON, COMMA, SEMICOLON,
-    LPARENT, RPARENT, LBRACKET, RBRACKET, LBRACE, RBRACE, DOUBLEQUOTE, SINGLEQUOTE,
+    PLUS,
+    MINUS,
+    STAR,
+    DIV,
+    MOD,
+    PLUSPLUS,
+    MINUSMINUS,
+    ASSIGN,
+    PLUSEQUAL,
+    MINUSEQUAL,
+    STAREQUAL,
+    DIVEQUAL,
+    MODEQUAL,
+    EQUAL,
+    NOTEQUAL,
+    GREAT,
+    LESS,
+    GREATEQUAL,
+    LESSEQUAL,
+    AND,
+    OR,
+    NOT,
+    ANDAND,
+    OROR,
+    BITXOR,
+    BITNOT,
+    LEFTMOVE,
+    RIGHTMOVE,
+    QUESTION,
+    COLON,
+    COMMA,
+    SEMICOLON,
+    LPARENT,
+    RPARENT,
+    LBRACKET,
+    RBRACKET,
+    LBRACE,
+    RBRACE,
+    DOUBLEQUOTE,
+    SINGLEQUOTE,
     // 常量
-    INTCON, FLOATCON, CHARCON, STRCON,
+    INTCON,
+    FLOATCON,
+    CHARCON,
+    STRCON,
     // 标识符
     IDENFR,
     // 异常
@@ -35,13 +108,15 @@ enum {
 char sourceCode[1000000];
 
 // 定义符号表计数器
-int IDCount = 0;
+int global_id_count = 0;
 int curLine = 1;
 int curCol = 1;
 // 记录错误集
 char errorList[10000][100] = {""};
 // 记录错误个数
 int errorCount = 0;
+// 记录变量名哈希值
+int global_id_hash[10000] = {0};
 
 // 判断是否是保留字
 int isKeyword(char s[])
@@ -111,7 +186,7 @@ int isOctDigit(char *c)
         if (c[i] < '0' || c[i] > '7')
             return 0;
     return 1;
-} 
+}
 // 通过DFA判断是否为科学计数法浮点数
 int isFloat(char *c)
 {
@@ -218,6 +293,7 @@ int filterStopWord(char *r, int totLen)
             while (r[i] != '\n')
                 i++;
             line++;
+            i --;
         }
         else if (r[i] == '\n')
         {
@@ -352,7 +428,8 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
     }
     else if (start == '\'')
     {
-        if(sourceCode[(*codePos) + 1] == '\\' && sourceCode[(*codePos) + 3] == '\''){
+        if (sourceCode[(*codePos) + 1] == '\\' && sourceCode[(*codePos) + 3] == '\'')
+        {
             token[tokenLen++] = sourceCode[(*codePos)++];
             token[tokenLen++] = sourceCode[(*codePos)++];
             token[tokenLen++] = sourceCode[(*codePos)++];
@@ -362,7 +439,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
             col += 4;
             return;
         }
-        
+
         token[tokenLen++] = sourceCode[(*codePos)++];
         token[tokenLen++] = sourceCode[(*codePos)++];
         token[tokenLen++] = sourceCode[(*codePos)++];
@@ -397,7 +474,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
                 token[tokenLen++] = sourceCode[(*codePos)++];
                 col++;
             }
-            
+
             token[tokenLen++] = sourceCode[(*codePos)++];
             col++;
             // 若字符串未闭合
@@ -426,9 +503,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
     else if (isOperatorSign(start))
     {
         // 若该位是符号，且下一位也是符号
-        if (sourceCode[*codePos + 1] == '+' && sourceCode[*codePos + 1] == '-' && sourceCode[*codePos + 1] == '=' && sourceCode[*codePos + 1] == '>' 
-        && sourceCode[*codePos + 1] == '<' && sourceCode[*codePos + 1] == '&' && sourceCode[*codePos + 1] == '|' && sourceCode[*codePos + 1] == '\'' 
-        && sourceCode[*codePos + 1] == '\"')
+        if (sourceCode[*codePos + 1] == '+' && sourceCode[*codePos + 1] == '-' && sourceCode[*codePos + 1] == '=' && sourceCode[*codePos + 1] == '>' && sourceCode[*codePos + 1] == '<' && sourceCode[*codePos + 1] == '&' && sourceCode[*codePos + 1] == '|' && sourceCode[*codePos + 1] == '\'' && sourceCode[*codePos + 1] == '\"')
         {
             token[tokenLen++] = sourceCode[(*codePos)++];
             token[tokenLen++] = sourceCode[(*codePos)++];
@@ -491,21 +566,98 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
     curCol = col;
 }
 
-void parser(char* sourceCode)
+// 判断该串是否为指定的关键字，若是则继续读一个token，否则报错退出
+void assert(int wanted_tk, int *codePos, char *sourceCode, char *token, int *tokenType)
+{
+    if (*tokenType != wanted_tk)
+    {
+        // printf("%d  %s", *tokenType, token);
+        printf("%d", IDENFR);
+        printf("line %lld, col %lld: expect token: %d, get: %s\n", curLine, curCol, wanted_tk, token);
+        exit(-1);
+    }
+    // 防止读空格
+    do
+    {
+        tokenize(codePos, sourceCode, token, tokenType);
+    } while (*tokenType <= 0);
+}
+
+// 判断变量是否重复
+void check_new_id(char *token)
+{
+    int hash = 0, P = 1;
+    // 计算哈希值
+    for (int i = 0; i < strlen(token); i++)
+    {
+        hash += (token[i] * P) % 1610612741;
+        P = P * 131 % 1610612741;
+    }
+    printf("%d\n", hash);
+    // 判断是否重复
+    for (int i = 0; i < global_id_count; i++)
+    {
+        if (global_id_hash[i] == hash)
+        {
+            printf("line %lld, col %lld: variable %s has been declared\n", curLine, curCol, token);
+            exit(-1);
+        }
+    }
+    // 添加到全局变量表
+    global_id_hash[global_id_count++] = hash;
+}
+
+// 处理枚举enum的文法
+void parse_enum(int *codePos, char *sourceCode, char *token, int *tokenType)
+{
+    int enum_val = 0;
+    while (*tokenType != RBRACE)
+    {
+        check_new_id(token);
+        assert(IDENFR, codePos, sourceCode, token, tokenType);
+        if (*tokenType == ASSIGN)
+        {
+            assert(ASSIGN, codePos, sourceCode, token, tokenType);
+            assert(INTCON, codePos, sourceCode, token, tokenType);
+        }
+        if (*tokenType == COMMA)
+            // 防止读空格
+            do
+            {
+                tokenize(codePos, sourceCode, token, tokenType);
+            } while (*tokenType <= 0);
+    }
+}
+
+void parser(char *sourceCode)
 {
     int codePos = 0;
     int tokenType = 1;
     char token[100];
     int line = 1;
     int col = 1;
-    while ( tokenType != 0)
-    {
-        tokenize(&codePos, sourceCode, token, &tokenType);
-        if (tokenType == _ENUM) {
-            assert(_ENUM);
-            
+    while (tokenType != 0)
+    {   
+        // 防止读空格
+        do
+        {
+            tokenize(&codePos, sourceCode, token, &tokenType);
+        } while (tokenType < 0);
+        // tokenize(&codePos, sourceCode, token, &tokenType);
+        if (tokenType == _ENUM)
+        {
+            // 防止读空格
+            do
+            {
+                tokenize(&codePos, sourceCode, token, &tokenType);
+            } while (tokenType < 0); // 取得一个新字符
+            if (tokenType != LBRACE)
+                assert(IDENFR, &codePos, sourceCode, token, &tokenType);
+
+            assert(LBRACE, &codePos, sourceCode, token, &tokenType);
+            parse_enum(&codePos, sourceCode, token, &tokenType);
+            assert(RBRACE, &codePos, sourceCode, token, &tokenType);
         }
-        
     }
 }
 
@@ -521,9 +673,7 @@ int main()
     char ch;
     int codeLen = 0;
     while ((ch = fgetc(fp)) != EOF)
-    {
         sourceCode[codeLen++] = ch;
-    }
     // printf("%d", codeLen);
     int flag = filterStopWord(sourceCode, strlen(sourceCode));
     if (!flag)
@@ -541,7 +691,7 @@ int main()
     //     tokenize(&codePos, sourceCode, token, &tokenType);
     //     if (tokenType)
     //     {
-    //         IDCount++;
+    //         global_id_count++;
     //         if (tokenType <= 29)
     //             printf("Reserved Word: %s\n", token);
     //         else if (tokenType <= 74)
