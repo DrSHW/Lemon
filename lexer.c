@@ -96,7 +96,6 @@ enum
     SINGLEQUOTE,
     // 常量
     INTCON,
-    FLOATCON,
     CHARCON,
     STRCON,
     // 标识符
@@ -158,103 +157,62 @@ int isIdentifier(char *c)
 
 int isDecDigit(char *c)
 {
-    for (int i = 0; i < strlen(c); i++)
-        if (!isDigit(c[i]))
-            return 0;
+    if (c[0] != '+' && c[0] != '-')
+        for(int i = 0; i < strlen(c); i++)
+            if (!isDigit(c[i]))
+                return 0;
+    else
+        for(int i = 1; i < strlen(c); i++)
+            if (!isDigit(c[i]))
+                return 0;
+    
     return 1;
 }
 
 // 判断是否为十六进制数字
 int isHexDigit(char *c)
 {
-    if (c[0] == '0' && !(c[1] == 'x' || c[1] == 'X'))
+    if (c[0] != '0' && c[0] != '-' && c[0] != '+')
         return 0;
-
-    for (int i = 2; i < strlen(c); i++)
-        if (!isDigit(c[i]) && (c[i] < 'a' || c[i] > 'f') && (c[i] < 'A' || c[i] > 'F'))
+    
+    if (c[0] == '0' && c[1] != 'x' && c[1] != 'X')
+        return 0;
+    else 
+        for (int i = 2; i < strlen(c); i++)
+            if (!isDigit(c[i]) && (c[i] < 'a' || c[i] > 'f') && (c[i] < 'A' || c[i] > 'F'))
+                return 0;
+    
+    if (c[0] == '-' || c[0] == '+')
+        if (c[1] != '0')
             return 0;
+        else if (c[2] != 'x' && c[2] != 'X')
+            return 0;
+        else 
+            for (int i = 3; i < strlen(c); i++)
+                if (!isDigit(c[i]) && (c[i] < 'a' || c[i] > 'f') && (c[i] < 'A' || c[i] > 'F'))
+                    return 0;
+
     return 1;
 }
 
 // 判断是否为八进制数字
 int isOctDigit(char *c)
 {
-    if (c[0] != '0')
+    if (c[0] != '0' && c[0] != '-' && c[0] != '+')
         return 0;
-
-    for (int i = 1; i < strlen(c); i++)
-        if (c[i] < '0' || c[i] > '7')
+    
+    if(c[0] == '0')
+        for (int i = 1; i < strlen(c); i++)
+            if (c[i] < '0' || c[i] > '7')
+                return 0;
+        
+    if (c[0] == '-' || c[0] == '+')
+        if (c[1] != '0')
             return 0;
-    return 1;
-}
-// 通过DFA判断是否为科学计数法浮点数
-int isFloat(char *c)
-{
-    int state = 0;
-    for (int i = 0; i < strlen(c); i++)
-    {
-        switch (state)
-        {
-        case 0:
-            if (c[i] == '+' || c[i] == '-')
-                state = 1;
-            else if (isDigit(c[i]))
-                state = 2;
-            else
-                return 0;
-            break;
-        case 1:
-            if (isDigit(c[i]))
-                state = 2;
-            else
-                return 0;
-            break;
-        case 2:
-            if (isDigit(c[i]))
-                state = 2;
-            else if (c[i] == '.')
-                state = 3;
-            else if (c[i] == 'e' || c[i] == 'E')
-                state = 5;
-            else
-                return 0;
-            break;
-        case 3:
-            if (isDigit(c[i]))
-                state = 4;
-            else
-                return 0;
-            break;
-        case 4:
-            if (isDigit(c[i]))
-                state = 4;
-            else if (c[i] == 'e' || c[i] == 'E')
-                state = 5;
-            else
-                return 0;
-            break;
-        case 5:
-            if (c[i] == '+' || c[i] == '-')
-                state = 6;
-            else if (isDigit(c[i]))
-                state = 7;
-            else
-                return 0;
-            break;
-        case 6:
-            if (isDigit(c[i]))
-                state = 7;
-            else
-                return 0;
-            break;
-        case 7:
-            if (isDigit(c[i]))
-                state = 7;
-            else
-                return 0;
-            break;
-        }
-    }
+        else
+            for (int i = 2; i < strlen(c); i++)
+                if (c[i] < '0' || c[i] > '7')
+                    return 0;
     return 1;
 }
 
@@ -400,8 +358,6 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
             *tokenType = INTCON;
         else if (isDecDigit(token))
             *tokenType = INTCON;
-        else if (isFloat(token))
-            *tokenType = FLOATCON;
         else
         {
             errorCount++;
@@ -502,8 +458,52 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
     }
     else if (isOperatorSign(start))
     {
+        // 若该位是符号，且下一位是数字
+        if ((start == '+' || start == '-') && isDigit(sourceCode[*codePos + 1]))
+        {
+            token[tokenLen++] = sourceCode[(*codePos)++];
+            token[tokenLen++] = sourceCode[(*codePos)++];
+            col++;
+            while (isDigit(sourceCode[*codePos]) || isLetter(sourceCode[*codePos]))
+            {
+                token[tokenLen++] = sourceCode[(*codePos)++];
+                col++;
+            }
+            token[tokenLen] = '\0';
+            // 判断是否为16进制数
+            if (isHexDigit(token)){
+                *tokenType = INTCON;
+                return;
+            }
+            else if (isOctDigit(token)){
+                *tokenType = INTCON;
+                return;
+            }
+            else if (isDecDigit(token)){
+                *tokenType = INTCON;
+                return;
+            }
+            else
+            {
+                errorCount++;
+                *tokenType = _ERROR;
+                char exception[100] = "ERROR: line ";
+                char temp[10];
+                sprintf(temp, "%d", tmpLine);
+                strcat(exception, temp);
+                strcat(exception, " col ");
+                sprintf(temp, "%d", tmpCol);
+                strcat(exception, temp);
+                strcat(exception, ": illegal number: ");
+                strcat(exception, token);
+                strcpy(errorList[errorCount], exception);
+                // printf("%s\n", exception);
+                return;
+            }
+        }
+        
         // 若该位是符号，且下一位也是符号
-        if (sourceCode[*codePos + 1] == '+' && sourceCode[*codePos + 1] == '-' && sourceCode[*codePos + 1] == '=' && sourceCode[*codePos + 1] == '>' && sourceCode[*codePos + 1] == '<' && sourceCode[*codePos + 1] == '&' && sourceCode[*codePos + 1] == '|' && sourceCode[*codePos + 1] == '\'' && sourceCode[*codePos + 1] == '\"')
+        else if (sourceCode[*codePos + 1] == '+' && sourceCode[*codePos + 1] == '-' && sourceCode[*codePos + 1] == '=' && sourceCode[*codePos + 1] == '>' && sourceCode[*codePos + 1] == '<' && sourceCode[*codePos + 1] == '&' && sourceCode[*codePos + 1] == '|' && sourceCode[*codePos + 1] == '\'' && sourceCode[*codePos + 1] == '\"')
         {
             token[tokenLen++] = sourceCode[(*codePos)++];
             token[tokenLen++] = sourceCode[(*codePos)++];
@@ -656,6 +656,49 @@ void parser(char *sourceCode)
             parse_enum(&codePos, sourceCode, token, &tokenType);
             assert(RBRACE, &codePos, sourceCode, token, &tokenType);
         }
+        // else if (tokenType == _INT || tokenType == _CHAR) {
+        //     // 防止读空格
+        //     do
+        //     {
+        //         tokenize(&codePos, sourceCode, token, &tokenType);
+        //     } while (tokenType < 0); // 取得一个新字符
+        //     check_new_id(token);
+        //     assert(IDENFR, &codePos, sourceCode, token, &tokenType);
+        //     if (tokenType == LBRACK)
+        //     {
+        //         assert(LBRACK, &codePos, sourceCode, token, &tokenType);
+        //         assert(INTCON, &codePos, sourceCode, token, &tokenType);
+        //         assert(RBRACK, &codePos, sourceCode, token, &tokenType);
+        //     }
+        //     if (tokenType == ASSIGN)
+        //     {
+        //         assert(ASSIGN, &codePos, sourceCode, token, &tokenType);
+        //         assert(INTCON, &codePos, sourceCode, token, &tokenType);
+        //     }
+        //     while (tokenType == COMMA)
+        //     {
+        //         // 防止读空格
+        //         do
+        //         {
+        //             tokenize(&codePos, sourceCode, token, &tokenType);
+        //         } while (tokenType < 0); // 取得一个新字符
+        //         check_new_id(token);
+        //         assert(IDENFR, &codePos, sourceCode, token, &tokenType);
+        //         if (tokenType == LBRACK)
+        //         {
+        //             assert(LBRACK, &codePos, sourceCode, token, &tokenType);
+        //             assert(INTCON, &codePos, sourceCode, token, &tokenType);
+        //             assert(RBRACK, &codePos, sourceCode, token, &tokenType);
+        //         }
+        //         if (tokenType == ASSIGN)
+        //         {
+        //             assert(ASSIGN, &codePos, sourceCode, token, &tokenType);
+        //             assert(INTCON, &codePos, sourceCode, token, &tokenType);
+        //         }
+        //     }
+        //     assert(SEMICN, &codePos, sourceCode, token, &tokenType);
+        // } 
+        
     }
 }
 
@@ -694,9 +737,9 @@ int main()
     //             printf("Reserved Word: %s\n", token);
     //         else if (tokenType <= 74)
     //             printf("Operator: %s\n", token);
-    //         else if (tokenType <= 78)
+    //         else if (tokenType <= 77)
     //             printf("Literal: %s\n", token);
-    //         else if (tokenType == 79)
+    //         else if (tokenType == 78)
     //             printf("Identifier: %s\n", token);
     //         else
     //             break;
