@@ -102,6 +102,11 @@ enum
     IDENFR,
     // 异常
     _ERROR,
+    // 具体类型
+    INTID,
+    CHARID,
+    STRID,
+    FUNCID
 };
 
 char sourceCode[1000000];
@@ -627,6 +632,32 @@ void parse_enum(int *codePos, char *sourceCode, char *token, int *tokenType)
     }
 }
 
+int parse_base_type(int *codePos, char *sourceCode, char *token, int *tokenType){
+    if(*tokenType == _CHAR) {
+        do
+        {
+            tokenize(codePos, sourceCode, token, tokenType);
+        } while (*tokenType < 0);
+        return CHARID;
+    } else if (*tokenType == _INT)
+    {
+        do
+        {
+            tokenize(codePos, sourceCode, token, tokenType);
+        } while (*tokenType < 0);
+        return INTID;
+    }
+}
+
+void parse_param(int *codePos, char *sourceCode, char *token, int *tokenType)
+{
+}
+
+// 处理函数的文法
+void parse_compound_stmt(int *codePos, char *sourceCode, char *token, int *tokenType)
+{
+}
+
 void parser(char *sourceCode)
 {
     int codePos = 0;
@@ -636,6 +667,14 @@ void parser(char *sourceCode)
     int col = 1;
     while (tokenType != 0)
     {   
+        // 遇到_STATIC，直接略过即可
+        if (tokenType == _STATIC)
+        {
+            do
+            {
+                tokenize(&codePos, sourceCode, token, &tokenType);
+            } while (tokenType < 0);
+        }
         // 防止读空格
         do
         {
@@ -656,59 +695,54 @@ void parser(char *sourceCode)
             parse_enum(&codePos, sourceCode, token, &tokenType);
             assert(RBRACE, &codePos, sourceCode, token, &tokenType);
         }
-        // else if (tokenType == _INT || tokenType == _CHAR) {
-        //     // 防止读空格
-        //     do
-        //     {
-        //         tokenize(&codePos, sourceCode, token, &tokenType);
-        //     } while (tokenType < 0); // 取得一个新字符
-        //     check_new_id(token);
-        //     assert(IDENFR, &codePos, sourceCode, token, &tokenType);
-        //     if (tokenType == LBRACK)
-        //     {
-        //         assert(LBRACK, &codePos, sourceCode, token, &tokenType);
-        //         assert(INTCON, &codePos, sourceCode, token, &tokenType);
-        //         assert(RBRACK, &codePos, sourceCode, token, &tokenType);
-        //     }
-        //     if (tokenType == ASSIGN)
-        //     {
-        //         assert(ASSIGN, &codePos, sourceCode, token, &tokenType);
-        //         assert(INTCON, &codePos, sourceCode, token, &tokenType);
-        //     }
-        //     while (tokenType == COMMA)
-        //     {
-        //         // 防止读空格
-        //         do
-        //         {
-        //             tokenize(&codePos, sourceCode, token, &tokenType);
-        //         } while (tokenType < 0); // 取得一个新字符
-        //         check_new_id(token);
-        //         assert(IDENFR, &codePos, sourceCode, token, &tokenType);
-        //         if (tokenType == LBRACK)
-        //         {
-        //             assert(LBRACK, &codePos, sourceCode, token, &tokenType);
-        //             assert(INTCON, &codePos, sourceCode, token, &tokenType);
-        //             assert(RBRACK, &codePos, sourceCode, token, &tokenType);
-        //         }
-        //         if (tokenType == ASSIGN)
-        //         {
-        //             assert(ASSIGN, &codePos, sourceCode, token, &tokenType);
-        //             assert(INTCON, &codePos, sourceCode, token, &tokenType);
-        //         }
-        //     }
-        //     assert(SEMICN, &codePos, sourceCode, token, &tokenType);
-        // } 
-        
+        else if (tokenType == _INT || tokenType == _CHAR) {
+            int base_type = parse_base_type(&codePos, sourceCode, token, &tokenType);
+            while (tokenType != SEMICOLON && tokenType != RBRACE)
+            {
+                int type = base_type;
+                while (tokenType == STAR){
+                    type = type + STAR;
+                    do
+                    {
+                        tokenize(&codePos, sourceCode, token, &tokenType);
+                    } while (tokenType < 0);
+                }
+                check_new_id(token);
+                printf("%s\n", token);
+                assert(IDENFR, &codePos, sourceCode, token, &tokenType);
+                if (tokenType == LPARENT)
+                {
+                    // 解析函数
+                    do
+                    {
+                        tokenize(&codePos, sourceCode, token, &tokenType);
+                    } while (tokenType < 0);
+                    parse_param(&codePos, sourceCode, token, &tokenType);   // 解析参数
+                    assert(RPARENT, &codePos, sourceCode, token, &tokenType);
+                    parse_compound_stmt(&codePos, sourceCode, token, &tokenType);   // 解析函数体
+                } else {
+                    // 解析普通变量/数组
+                    
+
+                }
+                if(tokenType == COMMA) {
+                    do
+                    {
+                        tokenize(&codePos, sourceCode, token, &tokenType);
+                    } while (tokenType < 0);
+                }
+            }  
+        } 
     }
 }
 
 int main()
 {
     // 读取源代码
-    FILE *fp = fopen("lexer.c", "r");
+    FILE *fp = fopen("main.c", "r");
     if (fp == NULL)
     {
-        printf("ERROR: file not found");
+        printf("ERROR: file not found\n");
         return 0;
     }
     char ch;
@@ -719,7 +753,7 @@ int main()
     int flag = filterStopWord(sourceCode, strlen(sourceCode));
     if (!flag)
     {
-        printf("预编译失败！");
+        printf("Precompilation failed!\n");
         return 0;
     }
     // printf("%s", sourceCode);
