@@ -4,23 +4,23 @@
 
 #define unsigned long long ull
 
-// ¶¨ÒåcÓïÑÔËùÓĞ±£Áô×ÖÊı×é£¬×ÖÄ¸´Óa¿ªÊ¼
+// å®šä¹‰cè¯­è¨€æ‰€æœ‰ä¿ç•™å­—æ•°ç»„ï¼Œå­—æ¯ä»aå¼€å§‹
 static char *key[] = {"auto", "break", "case", "char", "const", "continue", "default", "do", "double",
                       "else", "enum", "extern", "float", "for", "goto", "if", "int", "long", "register",
                       "return", "short", "signed", "sizeof", "static", "struct", "switch", "typedef",
                       "union", "unsigned", "void", "volatile", "while"}; // length = 32
 
-// ¶¨ÒåcÓïÑÔÔËËã·û
+// å®šä¹‰cè¯­è¨€è¿ç®—ç¬¦
 static char *op[] = {"+", "-", "*", "/", "%", "++", "--", "=", "+=", "-=", "*=", "/=", "%=", "==", "!=",
                      ">", "<", ">=", "<=", "&", "|", "!", "&&", "||", "^", "~", "<<", ">>", "?", ":",
-                     ",", ";", "(", ")", "[", "]", "{", "}", "\"", "\'"}; // length = 42
+                     ",", ";", "(", ")", "[", "]", "{", "}", "\"", "\'"}; // length = 40
 
-// ¶¨ÒåcÓïÑÔÆäËû×Ö·û
+// å®šä¹‰cè¯­è¨€å…¶ä»–å­—ç¬¦
 static char *other[] = {"identifier", "number", "string", "character", "comment", "other"}; // length = 6
 
 enum
 {
-    // ±£Áô×Ö
+    // ä¿ç•™å­—
     _AUTO = 1,
     _BREAK,
     _CASE,
@@ -53,7 +53,7 @@ enum
     _VOID,
     _VOLATILE,
     _WHILE,
-    // ÔËËã·û
+    // è¿ç®—ç¬¦
     PLUS,
     MINUS,
     STAR,
@@ -94,15 +94,15 @@ enum
     RBRACE,
     DOUBLEQUOTE,
     SINGLEQUOTE,
-    // ³£Á¿
+    // å¸¸é‡
     INTCON,
     CHARCON,
     STRCON,
-    // ±êÊ¶·û
+    // æ ‡è¯†ç¬¦
     IDENFR,
-    // Òì³£
+    // å¼‚å¸¸
     _ERROR,
-    // ¾ßÌåÀàĞÍ
+    // å…·ä½“ç±»å‹
     INTID,
     CHARID,
     STRID,
@@ -111,18 +111,18 @@ enum
 
 char sourceCode[1000000];
 
-// ¶¨Òå·ûºÅ±í¼ÆÊıÆ÷
+// å®šä¹‰ç¬¦å·è¡¨è®¡æ•°å™¨
 int global_id_count = 0;
 int curLine = 1;
 int curCol = 1;
-// ¼ÇÂ¼´íÎó¼¯
+// è®°å½•é”™è¯¯é›†
 char errorList[10000][100] = {""};
-// ¼ÇÂ¼´íÎó¸öÊı
+// è®°å½•é”™è¯¯ä¸ªæ•°
 int errorCount = 0;
-// ¼ÇÂ¼±äÁ¿Ãû¹şÏ£Öµ
+// è®°å½•å˜é‡åå“ˆå¸Œå€¼
 int global_id_hash[10000] = {0};
 
-// ÅĞ¶ÏÊÇ·ñÊÇ±£Áô×Ö
+// åˆ¤æ–­æ˜¯å¦æ˜¯ä¿ç•™å­—
 int isKeyword(char s[])
 {
     for (int i = 0; i < 32; i++)
@@ -131,7 +131,7 @@ int isKeyword(char s[])
     return 0;
 }
 
-// ÅĞ¶ÏÊÇ·ñÎª×ÖÄ¸»òÏÂ»®Ïß
+// åˆ¤æ–­æ˜¯å¦ä¸ºå­—æ¯æˆ–ä¸‹åˆ’çº¿
 int isLetter(char c)
 {
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_')
@@ -139,7 +139,7 @@ int isLetter(char c)
     return 0;
 }
 
-// ÅĞ¶ÏÄ³Î»ÊÇ·ñÎªÊı×Ö
+// åˆ¤æ–­æŸä½æ˜¯å¦ä¸ºæ•°å­—
 int isDigit(char c)
 {
     if (c >= '0' && c <= '9')
@@ -174,7 +174,7 @@ int isDecDigit(char *c)
     return 1;
 }
 
-// ÅĞ¶ÏÊÇ·ñÎªÊ®Áù½øÖÆÊı×Ö
+// åˆ¤æ–­æ˜¯å¦ä¸ºåå…­è¿›åˆ¶æ•°å­—
 int isHexDigit(char *c)
 {
     if (c[0] != '0' && c[0] != '-' && c[0] != '+')
@@ -200,7 +200,7 @@ int isHexDigit(char *c)
     return 1;
 }
 
-// ÅĞ¶ÏÊÇ·ñÎª°Ë½øÖÆÊı×Ö
+// åˆ¤æ–­æ˜¯å¦ä¸ºå…«è¿›åˆ¶æ•°å­—
 int isOctDigit(char *c)
 {
     if (c[0] != '0' && c[0] != '-' && c[0] != '+')
@@ -236,13 +236,13 @@ int isOperator(char *c)
     return 0;
 }
 
-// Ô¤±àÒë£¬¹ıÂËËùÓĞ×¢ÊÍ¡¢¿Õ¸ñ¡¢ÖÆ±í·û
+// é¢„ç¼–è¯‘ï¼Œè¿‡æ»¤æ‰€æœ‰æ³¨é‡Šã€ç©ºæ ¼ã€åˆ¶è¡¨ç¬¦
 int filterStopWord(char *r, int totLen)
 {
     char rawCode[100000] = "";
-    int pos = 0;  // ¼ÇÂ¼µ±Ç°×Ö·ûÎ»ÖÃ
-    int line = 0; // ĞĞºÅ
-    int col = 0;  // ÁĞºÅ
+    int pos = 0;  // è®°å½•å½“å‰å­—ç¬¦ä½ç½®
+    int line = 0; // è¡Œå·
+    int col = 0;  // åˆ—å·
     for (int i = 0; i < totLen; i++)
     {
         if (r[i] == '/' && r[i + 1] == '/')
@@ -278,21 +278,21 @@ int filterStopWord(char *r, int totLen)
                     sourceLine++;
                     rawCode[pos++] = r[i];
                 }
-                // ÅĞ¶ÏÊÇ·ñÓĞÎ´±ÕºÏµÄ×¢ÊÍ
+                // åˆ¤æ–­æ˜¯å¦æœ‰æœªé—­åˆçš„æ³¨é‡Š
                 if (i == totLen - 1)
                 {
-                    // ½«Î´±ÕºÏµÄ×¢ÊÍºÍÆäĞĞºÅ¡¢ÁĞºÅ¼ÇÂ¼µ½´íÎó¼¯ÖĞ
+                    // å°†æœªé—­åˆçš„æ³¨é‡Šå’Œå…¶è¡Œå·ã€åˆ—å·è®°å½•åˆ°é”™è¯¯é›†ä¸­
                     char exception[100] = "ERROR: line ";
-                    // ½«ĞĞºÅÆ´½ÓÖÁ´íÎó¼¯ÖĞ
+                    // å°†è¡Œå·æ‹¼æ¥è‡³é”™è¯¯é›†ä¸­
                     char temp[10];
                     sprintf(temp, "%d", sourceLine);
                     strcat(exception, temp);
                     strcat(exception, " col ");
-                    // ½«ÁĞºÅÆ´½ÓÖÁ´íÎó¼¯ÖĞ
+                    // å°†åˆ—å·æ‹¼æ¥è‡³é”™è¯¯é›†ä¸­
                     sprintf(temp, "%d", originCol);
                     strcat(exception, temp);
                     strcat(exception, ": comments should be closed");
-                    // ½«´íÎó¼¯Ìí¼ÓÖÁ´íÎó¼¯ºÏÖĞ
+                    // å°†é”™è¯¯é›†æ·»åŠ è‡³é”™è¯¯é›†åˆä¸­
                     strcpy(errorList[errorCount], exception);
                     printf("%s", exception);
                     errorCount++;
@@ -317,7 +317,7 @@ int filterStopWord(char *r, int totLen)
     return 1;
 }
 
-// ·ÖÎö×Ó³ÌĞò£¬tokenlize
+// åˆ†æå­ç¨‹åºï¼Œtokenlize
 void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
 {
     int tokenLen = 0;
@@ -356,7 +356,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
             col++;
         }
         token[tokenLen] = '\0';
-        // ÅĞ¶ÏÊÇ·ñÎª16½øÖÆÊı
+        // åˆ¤æ–­æ˜¯å¦ä¸º16è¿›åˆ¶æ•°
         if (isHexDigit(token))
             *tokenType = INTCON;
         else if (isOctDigit(token))
@@ -438,7 +438,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
 
             token[tokenLen++] = sourceCode[(*codePos)++];
             col++;
-            // Èô×Ö·û´®Î´±ÕºÏ
+            // è‹¥å­—ç¬¦ä¸²æœªé—­åˆ
             if (*codePos >= strlen(sourceCode))
             {
                 errorCount++;
@@ -463,7 +463,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
     }
     else if (isOperatorSign(start))
     {
-        // Èô¸ÃÎ»ÊÇ·ûºÅ£¬ÇÒÏÂÒ»Î»ÊÇÊı×Ö
+        // è‹¥è¯¥ä½æ˜¯ç¬¦å·ï¼Œä¸”ä¸‹ä¸€ä½æ˜¯æ•°å­—
         if ((start == '+' || start == '-') && isDigit(sourceCode[*codePos + 1]))
         {
             token[tokenLen++] = sourceCode[(*codePos)++];
@@ -475,7 +475,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
                 col++;
             }
             token[tokenLen] = '\0';
-            // ÅĞ¶ÏÊÇ·ñÎª16½øÖÆÊı
+            // åˆ¤æ–­æ˜¯å¦ä¸º16è¿›åˆ¶æ•°
             if (isHexDigit(token)){
                 *tokenType = INTCON;
                 return;
@@ -507,7 +507,7 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
             }
         }
         
-        // Èô¸ÃÎ»ÊÇ·ûºÅ£¬ÇÒÏÂÒ»Î»Ò²ÊÇ·ûºÅ
+        // è‹¥è¯¥ä½æ˜¯ç¬¦å·ï¼Œä¸”ä¸‹ä¸€ä½ä¹Ÿæ˜¯ç¬¦å·
         else if (sourceCode[*codePos + 1] == '+' && sourceCode[*codePos + 1] == '-' && sourceCode[*codePos + 1] == '=' && sourceCode[*codePos + 1] == '>' && sourceCode[*codePos + 1] == '<' && sourceCode[*codePos + 1] == '&' && sourceCode[*codePos + 1] == '|' && sourceCode[*codePos + 1] == '\'' && sourceCode[*codePos + 1] == '\"')
         {
             token[tokenLen++] = sourceCode[(*codePos)++];
@@ -566,12 +566,12 @@ void tokenize(int *codePos, char *sourceCode, char *token, int *tokenType)
         printf("%s\n", exception);
         return;
     }
-    // ¸üĞÂĞĞÁĞºÅ
+    // æ›´æ–°è¡Œåˆ—å·
     curLine = line;
     curCol = col;
 }
 
-// ÅĞ¶Ï¸Ã´®ÊÇ·ñÎªÖ¸¶¨µÄ¹Ø¼ü×Ö£¬ÈôÊÇÔò¼ÌĞø¶ÁÒ»¸ötoken£¬·ñÔò±¨´íÍË³ö
+// åˆ¤æ–­è¯¥ä¸²æ˜¯å¦ä¸ºæŒ‡å®šçš„å…³é”®å­—ï¼Œè‹¥æ˜¯åˆ™ç»§ç»­è¯»ä¸€ä¸ªtokenï¼Œå¦åˆ™æŠ¥é”™é€€å‡º
 void assert(int wanted_tk, int *codePos, char *sourceCode, char *token, int *tokenType)
 {
     if (*tokenType != wanted_tk)
@@ -580,24 +580,24 @@ void assert(int wanted_tk, int *codePos, char *sourceCode, char *token, int *tok
         printf("line %lld, col %lld: expect token: %d, get: %s\n", curLine, curCol, wanted_tk, token);
         exit(-1);
     }
-    // ·ÀÖ¹¶Á¿Õ¸ñ
+    // é˜²æ­¢è¯»ç©ºæ ¼
     do
     {
         tokenize(codePos, sourceCode, token, tokenType);
     } while (*tokenType <= 0);
 }
 
-// ÅĞ¶Ï±äÁ¿ÊÇ·ñÖØ¸´
+// åˆ¤æ–­å˜é‡æ˜¯å¦é‡å¤
 void check_new_id(char *token)
 {
     int hash = 0, P = 1;
-    // ¼ÆËã¹şÏ£Öµ
+    // è®¡ç®—å“ˆå¸Œå€¼
     for (int i = 0; i < strlen(token); i++)
     {
         hash += (token[i] * P) % 1610612741;
         P = P * 131 % 1610612741;
     }
-    // ÅĞ¶ÏÊÇ·ñÖØ¸´
+    // åˆ¤æ–­æ˜¯å¦é‡å¤
     for (int i = 0; i < global_id_count; i++)
     {
         if (global_id_hash[i] == hash)
@@ -606,11 +606,11 @@ void check_new_id(char *token)
             exit(-1);
         }
     }
-    // Ìí¼Óµ½È«¾Ö±äÁ¿±í
+    // æ·»åŠ åˆ°å…¨å±€å˜é‡è¡¨
     global_id_hash[global_id_count++] = hash;
 }
 
-// ´¦ÀíÃ¶¾ÙenumµÄÎÄ·¨
+// å¤„ç†æšä¸¾enumçš„æ–‡æ³•
 void parse_enum(int *codePos, char *sourceCode, char *token, int *tokenType)
 {
     int enum_val = 0;
@@ -624,7 +624,7 @@ void parse_enum(int *codePos, char *sourceCode, char *token, int *tokenType)
             assert(INTCON, codePos, sourceCode, token, tokenType);
         }
         if (*tokenType == COMMA)
-            // ·ÀÖ¹¶Á¿Õ¸ñ
+            // é˜²æ­¢è¯»ç©ºæ ¼
             do
             {
                 tokenize(codePos, sourceCode, token, tokenType);
@@ -653,7 +653,7 @@ void parse_param(int *codePos, char *sourceCode, char *token, int *tokenType)
 {
 }
 
-// ´¦Àíº¯ÊıµÄÎÄ·¨
+// å¤„ç†å‡½æ•°çš„æ–‡æ³•
 void parse_compound_stmt(int *codePos, char *sourceCode, char *token, int *tokenType)
 {
 }
@@ -667,7 +667,7 @@ void parser(char *sourceCode)
     int col = 1;
     while (tokenType != 0)
     {   
-        // Óöµ½_STATIC£¬Ö±½ÓÂÔ¹ı¼´¿É
+        // é‡åˆ°_STATICï¼Œç›´æ¥ç•¥è¿‡å³å¯
         if (tokenType == _STATIC)
         {
             do
@@ -675,7 +675,7 @@ void parser(char *sourceCode)
                 tokenize(&codePos, sourceCode, token, &tokenType);
             } while (tokenType < 0);
         }
-        // ·ÀÖ¹¶Á¿Õ¸ñ
+        // é˜²æ­¢è¯»ç©ºæ ¼
         do
         {
             tokenize(&codePos, sourceCode, token, &tokenType);
@@ -683,11 +683,11 @@ void parser(char *sourceCode)
         // tokenize(&codePos, sourceCode, token, &tokenType);
         if (tokenType == _ENUM)
         {
-            // ·ÀÖ¹¶Á¿Õ¸ñ
+            // é˜²æ­¢è¯»ç©ºæ ¼
             do
             {
                 tokenize(&codePos, sourceCode, token, &tokenType);
-            } while (tokenType < 0); // È¡µÃÒ»¸öĞÂ×Ö·û
+            } while (tokenType < 0); // å–å¾—ä¸€ä¸ªæ–°å­—ç¬¦
             if (tokenType != LBRACE)
                 assert(IDENFR, &codePos, sourceCode, token, &tokenType);
 
@@ -712,16 +712,16 @@ void parser(char *sourceCode)
                 assert(IDENFR, &codePos, sourceCode, token, &tokenType);
                 if (tokenType == LPARENT)
                 {
-                    // ½âÎöº¯Êı
+                    // è§£æå‡½æ•°
                     do
                     {
                         tokenize(&codePos, sourceCode, token, &tokenType);
                     } while (tokenType < 0);
-                    parse_param(&codePos, sourceCode, token, &tokenType);   // ½âÎö²ÎÊı
+                    parse_param(&codePos, sourceCode, token, &tokenType);   // è§£æå‚æ•°
                     assert(RPARENT, &codePos, sourceCode, token, &tokenType);
-                    parse_compound_stmt(&codePos, sourceCode, token, &tokenType);   // ½âÎöº¯ÊıÌå
+                    parse_compound_stmt(&codePos, sourceCode, token, &tokenType);   // è§£æå‡½æ•°ä½“
                 } else {
-                    // ½âÎöÆÕÍ¨±äÁ¿/Êı×é
+                    // è§£ææ™®é€šå˜é‡/æ•°ç»„
                     
 
                 }
@@ -738,7 +738,7 @@ void parser(char *sourceCode)
 
 int main()
 {
-    // ¶ÁÈ¡Ô´´úÂë
+    // è¯»å–æºä»£ç 
     FILE *fp = fopen("main.c", "r");
     if (fp == NULL)
     {
