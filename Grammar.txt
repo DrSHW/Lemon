@@ -1,0 +1,127 @@
+program' -> program
+program -> function_definition_list
+program -> variable_definition_list function_definition_list
+program -> struct_definition_list function_definition_list
+program -> struct_definition_list variable_definition_list function_definition_list
+struct_definition_list -> struct_definition
+struct_definition_list -> struct_definition struct_definition_list
+struct_definition -> _STRUCT IDENFR { struct_variable_definition_list } ;
+struct_definition -> _STRUCT IDENFR { } ;
+struct_definition -> _STRUCT IDENFR { struct_variable_definition_list } IDENFR ;
+struct_definition -> _STRUCT IDENFR { } IDENFR ;
+struct_definition -> _TYPEDEF _STRUCT { struct_variable_definition_list } IDENFR ;
+struct_definition -> _TYPEDEF _STRUCT IDENFR { struct_variable_definition_list } IDENFR ;
+struct_definition -> _TYPEDEF _STRUCT { } IDENFR ;
+struct_definition -> _TYPEDEF _STRUCT IDENFR { } IDENFR ;
+struct_variable_definition_list -> struct_variable_definition
+struct_variable_definition_list -> struct_variable_definition struct_variable_definition_list
+struct_variable_definition -> _INT IDENFR ;
+struct_variable_definition -> _INT IDENFR [ INTCON ] ;
+struct_variable_definition -> _CHAR IDENFR ;
+struct_variable_definition -> _CHAR IDENFR [ INTCON ] ;
+function_definition_list -> function_definition
+function_definition_list -> function_definition function_definition_list
+function_definition -> return_type function_name compound_statement
+return_type -> _VOID
+return_type -> _INT
+return_type -> _CHAR
+function_name -> IDENFR ( )
+function_name -> IDENFR ( parameter_list )
+parameter_list -> parameter_declaration
+parameter_list -> parameter_declaration , parameter_list
+parameter_declaration -> _INT IDENFR
+parameter_declaration -> _INT IDENFR [ ]
+parameter_declaration -> _CHAR IDENFR
+parameter_declaration -> _CHAR IDENFR [ ]
+struct_name -> IDENFR
+parameter_declaration -> struct_name IDENFR
+parameter_declaration -> struct_name IDENFR [ ]
+parameter_declaration -> struct_name IDENFR [ INTCON ]
+compound_statement -> { }
+compound_statement -> { variable_definition_list }
+compound_statement -> { statement_list }
+compound_statement -> { variable_definition_list statement_list }
+variable_definition_list -> variable_definition
+variable_definition_list -> variable_definition variable_definition_list
+variable_definition -> _INT IDENFR ;
+variable_definition -> _INT IDENFR = expression ;
+variable_definition -> _INT IDENFR [ INTCON ] ;
+variable_definition -> _INT IDENFR [ INTCON ] = { initializer_list } ;
+variable_definition -> _INT IDENFR [ ] = { initializer_list } ;
+variable_definition -> _CHAR IDENFR ;
+variable_definition -> _CHAR IDENFR = expression ;
+variable_definition -> _CHAR IDENFR [ INTCON ] ;
+variable_definition -> _CHAR IDENFR [ INTCON ] = { initializer_list } ;
+variable_definition -> _CHAR IDENFR [ ] = { initializer_list } ;
+initializer_list -> initializer
+initializer_list -> initializer , initializer_list
+initializer -> INTCON
+initializer -> CHARCON
+initializer -> STRCON
+initializer -> IDENFR
+initializer -> expression
+statement_list -> statement
+statement_list -> statement statement_list
+function_call -> IDENFR ( )
+function_call -> IDENFR ( argument_list )
+argument_list -> argument
+argument_list -> argument , argument_list
+argument -> expression
+statement -> compound_statement
+statement -> expression_statement
+statement -> selection_statement
+statement -> iteration_statement
+statement -> jump_statement
+expression_statement -> ;
+expression_statement -> expression ;
+selection_statement -> _IF ( expression ) statement
+selection_statement -> _IF ( expression ) statement _ELSE statement
+iteration_statement -> _WHILE ( expression ) statement
+iteration_statement -> _FOR ( expression_statement expression_statement expression ) statement
+jump_statement -> _BREAK ;
+jump_statement -> _CONTINUE ;
+jump_statement -> _RETURN ;
+jump_statement -> _RETURN expression ;
+expression -> assignment_expression
+expression -> assignment_expression , expression
+assignment_expression -> IDENFR = assignment_expression
+assignment_expression -> IDENFR . IDENFR = assignment_expression
+assignment_expression -> IDENFR [ expression ] = assignment_expression
+assignment_expression -> IDENFR += assignment_expression
+assignment_expression -> IDENFR -= assignment_expression
+assignment_expression -> equality_expression
+equality_expression -> relational_expression
+equality_expression -> relational_expression == equality_expression
+equality_expression -> relational_expression != equality_expression
+relational_expression -> additive_expression
+relational_expression -> additive_expression < relational_expression
+relational_expression -> additive_expression > relational_expression
+relational_expression -> additive_expression <= relational_expression
+relational_expression -> additive_expression >= relational_expression
+relational_expression -> additive_expression && relational_expression
+relational_expression -> additive_expression || relational_expression
+additive_expression -> multiplicative_expression
+additive_expression -> multiplicative_expression + additive_expression
+additive_expression -> multiplicative_expression - additive_expression
+multiplicative_expression -> unary_expression
+multiplicative_expression -> unary_expression * multiplicative_expression
+multiplicative_expression -> unary_expression / multiplicative_expression
+unary_expression -> primary_expression
+unary_expression -> unary_operator unary_expression
+primary_expression -> IDENFR
+primary_expression -> function_call
+primary_expression -> IDENFR [ ]
+primary_expression -> IDENFR [ expression ]
+primary_expression -> INTCON
+primary_expression -> CHARCON
+primary_expression -> STRCON
+primary_expression -> ( expression )
+unary_operator -> +
+unary_operator -> -
+unary_operator -> !
+unary_operator -> ~
+unary_operator -> &
+unary_operator -> *
+unary_operator -> --
+unary_operator -> ++
+unary_operator -> _SIZEOF
